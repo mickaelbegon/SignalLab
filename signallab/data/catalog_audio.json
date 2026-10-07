@@ -1,0 +1,112 @@
+[
+  {
+    "id": "sine_A4",
+    "label": "Sinusoïde pure – La4 (440 Hz)",
+    "kind": "audio",
+    "fs": 44100,
+    "f0": 440.0,
+    "note": "A4",
+    "description": "Son sans harmoniques : une seule raie dans le spectre à 440 Hz. Référence pour comparer le timbre des autres instruments.",
+    "source": "Synthétisé (tools/make_audio.py, numpy) – CC0 / domaine public",
+    "audify_speed": 1
+  },
+  {
+    "id": "piano_A4",
+    "label": "Piano – La4 (440 Hz)",
+    "kind": "audio",
+    "fs": 44100,
+    "f0": 440.0,
+    "note": "A4",
+    "description": "Attaque brève puis décroissance ; harmoniques quasi entiers qui s'éteignent plus vite aux hautes fréquences.",
+    "source": "Synthétisé (tools/make_audio.py, numpy) – CC0 / domaine public",
+    "audify_speed": 1
+  },
+  {
+    "id": "cello_A4",
+    "label": "Violoncelle – La4 (440 Hz)",
+    "kind": "audio",
+    "fs": 44100,
+    "f0": 440.0,
+    "note": "A4",
+    "description": "Archet : beaucoup d'harmoniques (raies décroissantes) et vibrato léger ; son entretenu.",
+    "source": "Synthétisé (tools/make_audio.py, numpy) – CC0 / domaine public",
+    "audify_speed": 1
+  },
+  {
+    "id": "flute_A4",
+    "label": "Flûte – La4 (440 Hz)",
+    "kind": "audio",
+    "fs": 44100,
+    "f0": 440.0,
+    "note": "A4",
+    "description": "Fondamentale dominante, très peu d'harmoniques (2 et 3 faibles) et bruit de souffle à haute fréquence.",
+    "source": "Synthétisé (tools/make_audio.py, numpy) – CC0 / domaine public",
+    "audify_speed": 1
+  },
+  {
+    "id": "violin_A4",
+    "label": "Violon – La4 (440 Hz)",
+    "kind": "audio",
+    "fs": 44100,
+    "f0": 440.0,
+    "note": "A4",
+    "description": "Spectre très riche en harmoniques (proche d'une dent de scie) avec un renforcement vers 1,3–2,2 kHz ; vibrato.",
+    "source": "Synthétisé (tools/make_audio.py, numpy) – CC0 / domaine public",
+    "audify_speed": 1
+  },
+  {
+    "id": "square_A4",
+    "label": "Onde carrée – La4 (440 Hz)",
+    "kind": "audio",
+    "fs": 44100,
+    "f0": 440.0,
+    "note": "A4",
+    "description": "Seuls les harmoniques impairs (440, 1320, 2200 Hz...) existent, d'amplitude 1/k : exemple de série de Fourier.",
+    "source": "Synthétisé (tools/make_audio.py, numpy) – CC0 / domaine public",
+    "audify_speed": 1
+  },
+  {
+    "id": "clarinet_C4",
+    "label": "Clarinette – Do4 (261,6 Hz)",
+    "kind": "audio",
+    "fs": 44100,
+    "f0": 261.63,
+    "note": "C4",
+    "description": "Tube cylindrique fermé : harmoniques impairs dominants (3f0, 5f0...), harmoniques pairs très faibles.",
+    "source": "Synthétisé (tools/make_audio.py, numpy) – CC0 / domaine public",
+    "audify_speed": 1
+  },
+  {
+    "id": "oboe_C4",
+    "label": "Hautbois – Do4 (261,6 Hz)",
+    "kind": "audio",
+    "fs": 44100,
+    "f0": 261.63,
+    "note": "C4",
+    "description": "Anche double : timbre nasillard, harmoniques 2 à 5 plus forts que la fondamentale (formant vers 1 kHz).",
+    "source": "Synthétisé (tools/make_audio.py, numpy) – CC0 / domaine public",
+    "audify_speed": 1
+  },
+  {
+    "id": "trumpet_C4",
+    "label": "Trompette – Do4 (261,6 Hz)",
+    "kind": "audio",
+    "fs": 44100,
+    "f0": 261.63,
+    "note": "C4",
+    "description": "Timbre cuivré : harmoniques forts jusqu'à ~3 kHz ; les aigus apparaissent progressivement pendant l'attaque.",
+    "source": "Synthétisé (tools/make_audio.py, numpy) – CC0 / domaine public",
+    "audify_speed": 1
+  },
+  {
+    "id": "guitar_C4",
+    "label": "Guitare (corde pincée) – Do4 (261,6 Hz)",
+    "kind": "audio",
+    "fs": 44100,
+    "f0": 261.63,
+    "note": "C4",
+    "description": "Modèle Karplus-Strong : corde pincée, harmoniques aigus qui disparaissent plus vite que les graves (effet passe-bas).",
+    "source": "Synthétisé (tools/make_audio.py, numpy) – CC0 / domaine public",
+    "audify_speed": 1
+  }
+]
