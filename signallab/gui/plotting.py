@@ -25,15 +25,16 @@ def _slice(x, fs, t0, dur):
     return t[::step], seg[::step]
 
 
-def plot_time(fig, info, x, y, fs, t0, dur, show_orig=True):
+def plot_time(fig, info, x, branches, fs, t0, dur, show_orig=True):
+    """branches : liste de (nom, couleur, signal traité)."""
     fig.clear()
     ax = fig.add_subplot(111)
-    if y is None or show_orig:
+    if not branches or show_orig:
         t, s = _slice(x, fs, t0, dur)
         ax.plot(t, s, color=C_ORIG, lw=1.4, label="Original")
-    if y is not None:
+    for name, color, y in branches:
         t, s = _slice(y, fs, t0, dur)
-        ax.plot(t, s, color=C_PROC, lw=1.4, label="Traité")
+        ax.plot(t, s, color=color, lw=1.4, label=name)
     ax.set_xlabel("Temps (s)")
     ax.set_ylabel(_unit(info))
     ax.set_title(info.label, fontsize="medium")
@@ -49,7 +50,7 @@ def _spec(cache, name, x, fs):
     return cache[name]
 
 
-def plot_freq(fig, info, x, y, fs, fmax, log_f=False, db=False, show_orig=True, cache=None):
+def plot_freq(fig, info, x, branches, fs, fmax, log_f=False, db=False, show_orig=True, cache=None, marker=-1):
     cache = {} if cache is None else cache
     fig.clear()
     ax = fig.add_subplot(111)
@@ -62,15 +63,18 @@ def plot_freq(fig, info, x, y, fs, fmax, log_f=False, db=False, show_orig=True, 
 
     fmax = min(fmax, fs / 2)
     curves = []
-    if y is None or show_orig:
+    if not branches or show_orig:
         ax.plot(fo, conv(ao), color=C_ORIG, lw=1.4, label="Original")
         curves.append((fo, ao))
-    if y is not None:
-        fp, ap = _spec(cache, "proc", y, fs)
-        ax.plot(fp, conv(ap), color=C_PROC, lw=1.4, label="Traité")
+    marked = None
+    for k, (name, color, y) in enumerate(branches):
+        fp, ap = _spec(cache, f"b{k}", y, fs)
+        ax.plot(fp, conv(ap), color=color, lw=1.4, label=name)
         curves.append((fp, ap))
-    # marqueurs sur le signal traité s'il existe, sinon l'original
-    fm, am = curves[-1]
+        if k == marker:
+            marked = (fp, ap)
+    # marqueurs sur la branche active, sinon la dernière courbe tracée
+    fm, am = marked or curves[-1]
     try:
         if info.kind == "emg" and not info.f0:
             raise ValueError
@@ -111,9 +115,9 @@ def plot_freq(fig, info, x, y, fs, fmax, log_f=False, db=False, show_orig=True, 
     return ax
 
 
-def plot_spectrogram(fig, info, x, y, fs, fmax, log_f=False):
+def plot_spectrogram(fig, info, x, branches, fs, fmax, log_f=False):
     fig.clear()
-    sigs = [("Original", x)] + ([("Traité", y)] if y is not None else [])
+    sigs = [("Original", x)] + [(name, y) for name, _c, y in branches]
     axes = fig.subplots(len(sigs), 1, sharex=True, sharey=True)
     axes = np.atleast_1d(axes)
     nfft = int(2 ** np.round(np.log2(max(fs * 0.04, 64))))
