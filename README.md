@@ -94,3 +94,9 @@ python run.py
 Le workflow GitHub Actions (`.github/workflows/build.yml`) lance les tests puis construit avec PyInstaller
 un `.zip` Windows et un `.app` macOS : à télécharger dans l'onglet *Actions* (artefacts) ou, pour un tag `vX.Y.Z`, dans les *Releases*.
 En local : `pyinstaller signallab.spec`.
+
+## Branches de traitement
+
+Chaque côté peut avoir plusieurs **branches** (onglets sous la figure) : chaque branche applique sa propre chaîne de traitements
+au signal original et est tracée dans sa couleur. `＋ Nouvelle branche` repart de l'original, `⑂ Dupliquer` copie la branche active
+pour en dériver une variante. « Jouer traité » joue la branche active.
