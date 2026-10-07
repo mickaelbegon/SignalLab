@@ -80,3 +80,17 @@ régénération : `python tools/fetch_samples.py` (télécharge ~35 Mo, supprim�
 ## Licence
 
 MIT © Mickael Begon
+
+## Environnement conda
+
+```bash
+conda env create -f environment.yml
+conda activate signallab
+python run.py
+```
+
+## Exécutables (Windows / macOS)
+
+Le workflow GitHub Actions (`.github/workflows/build.yml`) lance les tests puis construit avec PyInstaller
+un `.zip` Windows et un `.app` macOS : à télécharger dans l'onglet *Actions* (artefacts) ou, pour un tag `vX.Y.Z`, dans les *Releases*.
+En local : `pyinstaller signallab.spec`.
