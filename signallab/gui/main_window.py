@@ -10,7 +10,7 @@ import numpy as np
 matplotlib.use("QtAgg")
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QColor, QFont, QPalette
 from PySide6.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QComboBox, QDoubleSpinBox, QHBoxLayout,
                                QLabel, QMainWindow, QMenu, QPushButton, QToolButton, QVBoxLayout, QWidget)
 
@@ -18,16 +18,23 @@ from .. import audio, signals
 from .side_panel import SidePanel
 
 STYLE = """
-* { font-size: 13pt; }
+* { font-size: 10pt; color: #1b1f24; }
 QMainWindow, QWidget#central { background: #f6f7f9; }
-QLabel#desc { color: #333; background: #eef2f7; border-radius: 4px; padding: 4px 6px; font-size: 11pt; }
+QLabel#desc { color: #1b1f24; background: #eef2f7; border-radius: 4px; padding: 4px 6px; font-size: 9pt; }
 QFrame#procItem { background: white; border: 1px solid #c8ced6; border-radius: 6px; }
-QPushButton, QToolButton { padding: 4px 10px; }
+QPushButton, QToolButton { padding: 4px 10px; background: #e6e9ee; border: 1px solid #b8bec7; border-radius: 4px; color: #1b1f24; }
+QPushButton:hover, QToolButton:hover { background: #d8dde5; }
+QComboBox, QSpinBox, QDoubleSpinBox, QLineEdit { background: white; color: #1b1f24; border: 1px solid #b8bec7; border-radius: 3px; padding: 2px 4px; }
+QComboBox QAbstractItemView { background: white; color: #1b1f24; selection-background-color: #1f77b4; selection-color: white; }
+QMenu { background: white; color: #1b1f24; border: 1px solid #b8bec7; }
+QMenu::item:selected { background: #1f77b4; color: white; }
+QCheckBox, QLabel { background: transparent; }
+QToolTip { background: #fffbe6; color: #1b1f24; border: 1px solid #b8bec7; }
 QPushButton:checked { background: #1f77b4; color: white; }
 QPushButton#mode { min-width: 120px; }
 QPushButton#mode:checked { background: #1f77b4; color: white; font-weight: bold; }
-QToolTip { font-size: 12pt; padding: 4px; }
-QStatusBar { font-size: 11pt; }
+QToolTip { font-size: 10pt; padding: 4px; }
+QStatusBar { font-size: 9pt; }
 """
 
 # (libellé, type de signal requis, préférences d'identifiant, chaîne)
@@ -234,12 +241,21 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication.instance() or QApplication(sys.argv)
+    app.setStyle("Fusion")
+    pal = QPalette()
+    for role, col in [(QPalette.Window, "#f6f7f9"), (QPalette.WindowText, "#1b1f24"), (QPalette.Base, "white"),
+                      (QPalette.AlternateBase, "#eef2f7"), (QPalette.Text, "#1b1f24"), (QPalette.Button, "#e6e9ee"),
+                      (QPalette.ButtonText, "#1b1f24"), (QPalette.ToolTipBase, "#fffbe6"),
+                      (QPalette.ToolTipText, "#1b1f24"), (QPalette.Highlight, "#1f77b4"),
+                      (QPalette.HighlightedText, "white")]:
+        pal.setColor(role, QColor(col))
+    app.setPalette(pal)
     app.setStyleSheet(STYLE)
     f = QFont(app.font())
-    f.setPointSize(13)
+    f.setPointSize(10)
     app.setFont(f)
-    matplotlib.rcParams.update({"font.size": 13, "axes.titlesize": 14, "axes.labelsize": 13,
-                                "legend.fontsize": 12, "lines.linewidth": 1.5})
+    matplotlib.rcParams.update({"font.size": 10, "axes.titlesize": 11, "axes.labelsize": 10,
+                                "legend.fontsize": 9, "lines.linewidth": 1.5})
     w = MainWindow()
     w.show()
     return app.exec()
