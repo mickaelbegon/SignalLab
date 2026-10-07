@@ -16,7 +16,7 @@ SignalLab/
     dsp.py                    # filtres, bruits, spectre   (agent DSP)
     audio.py                  # to_playable(), lecture Qt  (agent GUI)
     gui/                      # fenêtre, panneaux, canvas  (agent GUI)
-    data/audio/*.wav          # 10 sons (agent SONS)
+    data/audio/*.wav          # 10 sons (7 enregistrements Iowa + 3 synthèses)
     data/catalog_audio.json   # métadonnées des sons (agent SONS)
     data/biomech/*.npz        # EMG + cinématique (agent BIOMECA)
   tests/

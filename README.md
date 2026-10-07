@@ -70,6 +70,13 @@ Le test de la GUI tourne en mode `offscreen` et ne joue aucun son.
 `signallab/signals.py` (catalogue), `biomech.py` (EMG/cinématique), `dsp.py` (traitements),
 `audio.py` (lecture), `gui/` (interface). Voir `SPEC.md`.
 
+## Sources des sons
+
+Sept sons sont de vrais enregistrements (piano, violoncelle, flûte, violon, clarinette, hautbois, trompette,
+note La4) issus de la *University of Iowa Musical Instrument Samples* (usage libre sans restriction) ;
+la sinusoïde, l'onde carrée et la guitare sont synthétisées. Détails dans `SOURCES.md` ;
+régénération : `python tools/fetch_samples.py` (télécharge ~35 Mo, supprimés ensuite).
+
 ## Licence
 
 MIT © Mickael Begon
