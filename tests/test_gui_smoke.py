@@ -97,27 +97,6 @@ def test_window_flow(win):
         win.right.set_signal(i.id)
 
 
-def test_branches(win):
-    p = win.left
-    p.set_signal("piano_A4")
-    p.chain.add("lowpass")
-    p.add_branch()
-    assert len(p.branches) == 2 and p.chain.chain() == []
-    p.chain.add("highpass")
-    p.add_branch([("notch", {"f0": 440.0})])
-    assert len(p.branches) == 3
-    p.recompute()
-    assert len(p.active_branches()) == 3
-    for mode in ("time", "freq", "spec"):
-        win.set_mode(mode)
-    p.duplicate_branch()
-    assert len(p.branches) == 4 and p.chain.chain()
-    p.remove_branch(0)
-    assert len(p.branches) == 3
-    out = p.tabs.count()
-    assert out == 3 and len(p.branches) == out
-
-
 def test_screenshot(win):
     infos = signals.list_signals()
     ids = {i.id for i in infos}
@@ -126,7 +105,6 @@ def test_screenshot(win):
     if emg:
         win.right.set_signal(emg)
     win.left.chain.add("lowpass")
-    win.left.add_branch([("highpass", {"fc": 1200.0})])
     win.left.recompute()
     win.right.chain.add("notch")
     win.right.recompute()

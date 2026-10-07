@@ -9,27 +9,14 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavToolbar
 from matplotlib.figure import Figure
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QComboBox, QDoubleSpinBox, QFileDialog, QHBoxLayout, QLabel, QMenu,
-                               QPushButton, QSplitter, QStackedWidget, QTabBar, QToolButton, QVBoxLayout,
-                               QWidget)
+                               QPushButton, QSplitter, QToolButton, QVBoxLayout, QWidget)
 
 from .. import audio, dsp
 from . import plotting
 from .chain_widget import ChainWidget
 
 DEBOUNCE_MS = 150
-BRANCH_COLORS = ["#ff7f0e", "#2ca02c", "#9467bd", "#17becf", "#8c564b", "#e377c2", "#bcbd22"]
-
-
-class Branch:
-    """Une branche = une chaîne de traitements appliquée à l'original, tracée dans sa couleur."""
-
-    def __init__(self, name, color, chain):
-        self.name = name
-        self.color = color
-        self.chain = chain
-        self.y = None
 
 
 class SidePanel(QWidget):
@@ -38,6 +25,7 @@ class SidePanel(QWidget):
         self.name = name
         self.owner = owner          # fenêtre principale (settings, player, infos, status)
         self.x = None
+        self.y = None
         self.info = None
         self.fs = 1.0
         self.cache = {}
@@ -117,99 +105,21 @@ class SidePanel(QWidget):
         tl.addLayout(win)
         split.addWidget(top)
 
-        bottom = QWidget()
-        bl = QVBoxLayout(bottom)
-        bl.setContentsMargins(0, 0, 0, 0)
-        brow = QHBoxLayout()
-        self.tabs = QTabBar()
-        self.tabs.setExpanding(False)
-        self.tabs.setTabsClosable(False)
-        self.tabs.setToolTip("Chaque branche applique sa propre chaîne de traitements à l'original")
-        self.btn_new = QPushButton("＋ Nouvelle branche")
-        self.btn_new.setToolTip("Nouvelle branche vide, repartant du signal original")
-        self.btn_dup = QPushButton("⑂ Dupliquer")
-        self.btn_dup.setToolTip("Copie la branche active pour en dériver une variante")
-        brow.addWidget(self.tabs, 1)
-        brow.addWidget(self.btn_new)
-        brow.addWidget(self.btn_dup)
-        bl.addLayout(brow)
-        self.stack = QStackedWidget()
-        bl.addWidget(self.stack, 1)
-        self.branches = []
-        self._counter = 0
-        split.addWidget(bottom)
+        self.chain = ChainWidget()
+        split.addWidget(self.chain)
         split.setStretchFactor(0, 3)
         split.setStretchFactor(1, 2)
         split.setSizes([520, 330])
         root.addWidget(split, 1)
 
         self.combo.currentIndexChanged.connect(self._on_signal_changed)
-        self.tabs.currentChanged.connect(self._on_tab)
-        self.tabs.tabCloseRequested.connect(self.remove_branch)
-        self.btn_new.clicked.connect(lambda: self.add_branch())
-        self.btn_dup.clicked.connect(self.duplicate_branch)
-        self.add_branch()
+        self.chain.changed.connect(self.schedule)
         self.sp_t0.valueChanged.connect(self.redraw)
         self.sp_dur.valueChanged.connect(self.redraw)
         self.btn_all.clicked.connect(self.show_all)
         self.btn_orig.clicked.connect(lambda: self.play(False))
         self.btn_proc.clicked.connect(lambda: self.play(True))
         self.btn_stop.clicked.connect(self.owner.player.stop)
-
-    # --------------------------------------------------------------- branches
-    @property
-    def active(self):
-        return self.branches[max(self.tabs.currentIndex(), 0)]
-
-    @property
-    def chain(self):
-        """ChainWidget de la branche active."""
-        return self.active.chain
-
-    @property
-    def y(self):
-        """Signal traité de la branche active (None si sa chaîne est vide)."""
-        return self.active.y
-
-    def add_branch(self, chain=None):
-        self._counter += 1
-        color = BRANCH_COLORS[(self._counter - 1) % len(BRANCH_COLORS)]
-        cw = ChainWidget()
-        if self.info is not None:
-            cw.set_kind(self.info.kind)
-        cw.changed.connect(self.schedule)
-        br = Branch(f"Branche {self._counter}", color, cw)
-        self.branches.append(br)
-        self.stack.addWidget(cw)
-        i = self.tabs.addTab(br.name)
-        self.tabs.setTabTextColor(i, QColor(color))
-        self.tabs.setTabsClosable(len(self.branches) > 1)
-        self.tabs.setCurrentIndex(i)
-        if chain:
-            cw.set_chain(chain)
-        self.schedule()
-        return br
-
-    def duplicate_branch(self):
-        self.add_branch(self.chain.chain())
-
-    def remove_branch(self, i):
-        if len(self.branches) <= 1 or not 0 <= i < len(self.branches):
-            return
-        br = self.branches.pop(i)
-        self.tabs.removeTab(i)
-        self.stack.removeWidget(br.chain)
-        br.chain.deleteLater()
-        self.tabs.setTabsClosable(len(self.branches) > 1)
-        self.schedule()
-
-    def _on_tab(self, i):
-        if 0 <= i < len(self.branches):
-            self.stack.setCurrentWidget(self.branches[i].chain)
-            self.redraw()
-
-    def active_branches(self):
-        return [(b.name, b.color, b.y) for b in self.branches if b.y is not None]
 
     # ------------------------------------------------------------------ signal
     def set_signal(self, sig_id):
@@ -226,8 +136,7 @@ class SidePanel(QWidget):
             return
         self.x, self.info = self.owner.load(sig_id)
         self.fs = float(self.info.fs)
-        for b in self.branches:
-            b.chain.set_kind(self.info.kind)
+        self.chain.set_kind(self.info.kind)
         text = html.escape(self.info.description)
         if self.info.source:
             text += f"  <i>[{html.escape(self.info.source)}]</i>"
@@ -264,20 +173,19 @@ class SidePanel(QWidget):
         self.timer.stop()
         if self.x is None:
             return
-        for b in self.branches:
-            chain = b.chain.chain()
-            b.y = None
-            if chain:
-                try:
-                    y = dsp.apply_chain(self.x, self.fs, chain)
-                    b.y = np.nan_to_num(np.asarray(y, dtype=float))
-                except Exception as e:  # ne jamais planter l'interface
-                    self.owner.status(f"{self.name} : erreur de traitement ({b.name} : {e})")
+        chain = self.chain.chain()
+        self.y = None
+        if chain:
+            try:
+                y = dsp.apply_chain(self.x, self.fs, chain)
+                self.y = np.nan_to_num(np.asarray(y, dtype=float))
+            except Exception as e:  # ne jamais planter l'interface
+                self.owner.status(f"{self.name} : erreur de traitement ({e})")
         self.cache.clear()
         self.redraw()
 
     def processed(self):
-        """Signal traité de la branche active (ou original si sa chaîne est vide)."""
+        """Signal traité (ou original si la chaîne est vide)."""
         return self.y if self.y is not None else self.x
 
     # ----------------------------------------------------------------- tracé
@@ -285,24 +193,21 @@ class SidePanel(QWidget):
         if self.x is None:
             return
         s = self.owner.settings
-        br = self.active_branches()
-        marker = next((k for k, b in enumerate(br) if b[2] is self.active.y), -1)
         try:
             if s.mode == "time":
-                plotting.plot_time(self.fig, self.info, self.x, br, self.fs,
+                plotting.plot_time(self.fig, self.info, self.x, self.y, self.fs,
                                    self.sp_t0.value(), self.sp_dur.value(), s.overlay)
             elif s.mode == "freq":
-                plotting.plot_freq(self.fig, self.info, self.x, br, self.fs, s.fmax,
-                                   s.log_f, s.db, s.overlay, self.cache, marker)
+                plotting.plot_freq(self.fig, self.info, self.x, self.y, self.fs, s.fmax,
+                                   s.log_f, s.db, s.overlay, self.cache)
             else:
-                plotting.plot_spectrogram(self.fig, self.info, self.x, br, self.fs, s.fmax, s.log_f)
+                plotting.plot_spectrogram(self.fig, self.info, self.x, self.y, self.fs, s.fmax, s.log_f)
         except Exception as e:
             self.owner.status(f"{self.name} : erreur de tracé ({e})")
         self.canvas.draw_idle()
         self.owner.sync_axes()
-        n = sum(len(b.chain.chain()) for b in self.branches)
-        self.owner.status(f"{self.name} : {self.info.label} – fs = {self.fs:g} Hz – "
-                          f"{len(self.branches)} branche(s), {n} traitement(s) actif(s)")
+        n = len(self.chain.chain())
+        self.owner.status(f"{self.name} : {self.info.label} – fs = {self.fs:g} Hz – {n} traitement(s) actif(s)")
 
     # ----------------------------------------------------------------- audio
     def play(self, processed):
@@ -310,7 +215,7 @@ class SidePanel(QWidget):
             return
         sig = self.processed() if processed else self.x
         pcm, fs = audio.to_playable(sig, self.fs, self.info.audify_speed)
-        what = f"traité ({self.active.name})" if processed else "original"
+        what = "traité" if processed else "original"
         if self.owner.player.play(pcm, fs):
             self.owner.status(f"Lecture : {self.name} – {what} ({len(pcm) / fs:.1f} s)")
         else:
@@ -327,10 +232,8 @@ class SidePanel(QWidget):
         with open(path, "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
             w.writerow(["# signal", self.info.id, "fs_Hz", self.fs])
-            outs = [b for b in self.branches if b.y is not None]
-            cols = [b.y for b in outs] or [y]
-            w.writerow(["t_s", "original"] + ([b.name for b in outs] or ["traite"]))
-            for row in zip(t, self.x, *cols):
+            w.writerow(["t_s", "original", "traite"])
+            for row in zip(t, self.x, y):
                 w.writerow([f"{v:.9g}" for v in row])
 
     def export_png(self, path):
