@@ -5,9 +5,10 @@ dependencies:
   - python=3.11
   - numpy>=1.26
   - scipy>=1.11
-  - matplotlib>=3.8
+  - matplotlib-base>=3.8
+  - pyside6>=6.6
+  - qt6-multimedia
   - pytest>=8.0
   - pip
   - pip:
-      - PySide6>=6.6
       - pyinstaller>=6.0
